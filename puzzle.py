@@ -22,10 +22,6 @@ class GameGrid(Frame):
         self.master.bind("<Key>", self.key_down)
 
         self.commands = {
-            c.KEY_UP: logic.up,
-            c.KEY_DOWN: logic.down,
-            c.KEY_LEFT: logic.left,
-            c.KEY_RIGHT: logic.right,
             c.KEY_UP_ALT1: logic.up,
             c.KEY_DOWN_ALT1: logic.down,
             c.KEY_LEFT_ALT1: logic.left,
@@ -42,6 +38,7 @@ class GameGrid(Frame):
         self.history_matrixs = []
         self.update_grid_cells()
         self.setup_buttons()
+        self.run_game()
         self.mainloop()
 
     def init_grid(self):
@@ -108,23 +105,6 @@ class GameGrid(Frame):
             self.matrix = self.history_matrixs.pop()
             self.update_grid_cells()
             print('back on step total step:', len(self.history_matrixs))
-        """
-        elif key in self.commands:
-            self.matrix, done = self.commands[key](self.matrix)
-            if done:
-                self.matrix = logic.add_two(self.matrix)
-                # record last move
-                self.history_matrixs.append(self.
-                matrix)
-                self.update_grid_cells()
-                if logic.game_state(self.matrix) == 'win':
-                    self.grid_cells[1][1].configure(text="You", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
-                    self.grid_cells[1][2].configure(text="Win!", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
-                if logic.game_state(self.matrix) == 'lose':
-                    self.grid_cells[1][1].configure(text="You", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
-                    self.grid_cells[1][2].configure(text="Lose!", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
-        """
-        self.check_buttons()
 
     def check_buttons(self):
         for key in self.buttons.keys():
@@ -134,13 +114,13 @@ class GameGrid(Frame):
                         
                 #Map the direction to the button pressed 
                 if key == 20:
-                    self.matrix, done = self.commands[c.KEY_UP](self.matrix)
+                    self.matrix, done = logic.up(self.matrix)
                 elif key == 2:
-                    self.matrix, done = self.commands[c.KEY_LEFT](self.matrix)
+                    self.matrix, done = logic.left(self.matrix)
                 elif key == 19:
-                    self.matrix, done = self.commands[c.KEY_RIGHT](self.matrix)
+                    self.matrix, done = logic.right(self.matrix) 
                 elif key == 18:
-                    self.matrix, done = self.commands[c.KEY_DOWN](self.matrix)
+                    self.matrix, done = logic.down(self.matrix)
                 if done:
                     self.matrix = logic.add_two(self.matrix)
                     # record last move
@@ -152,14 +132,16 @@ class GameGrid(Frame):
                     if logic.game_state(self.matrix) == 'lose':
                         self.grid_cells[1][1].configure(text="You", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
                         self.grid_cells[1][2].configure(text="Lose!", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
-            time.sleep(0.5) # Add delay so we don't detect button presses to fast
-
-
+            #time.sleep(0.5)  Add delay so we don't detect button presses to fast
 
     def generate_next(self):
         index = (gen(), gen())
         while self.matrix[index[0]][index[1]] != 0:
             index = (gen(), gen())
         self.matrix[index[0]][index[1]] = 2
+
+    def run_game(self):
+        self.check_buttons()
+        self.master.after(1000, self.run_game)
 
 game_grid = GameGrid()
