@@ -116,9 +116,9 @@ class GameGrid(Frame):
                 if key == 20:
                     self.matrix, done = logic.up(self.matrix)
                 elif key == 2:
-                    self.matrix, done = logic.left(self.matrix)
+                    self.matrix, done = logic.right(self.matrix)
                 elif key == 19:
-                    self.matrix, done = logic.right(self.matrix) 
+                    self.matrix, done = logic.left(self.matrix) 
                 elif key == 18:
                     self.matrix, done = logic.down(self.matrix)
                 if done:
@@ -132,7 +132,8 @@ class GameGrid(Frame):
                     if logic.game_state(self.matrix) == 'lose':
                         self.grid_cells[1][1].configure(text="You", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
                         self.grid_cells[1][2].configure(text="Lose!", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
-            #time.sleep(0.5)  Add delay so we don't detect button presses to fast
+                    time.sleep(0.5)
+
 
     def generate_next(self):
         index = (gen(), gen())
@@ -142,6 +143,6 @@ class GameGrid(Frame):
 
     def run_game(self):
         self.check_buttons()
-        self.master.after(1000, self.run_game)
+        self.master.after(100, self.run_game)
 
 game_grid = GameGrid()
