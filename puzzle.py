@@ -121,9 +121,12 @@ class GameGrid(Frame):
                     self.matrix, done = logic.left(self.matrix) 
                 elif key == 18:
                     self.matrix, done = logic.down(self.matrix)
+                
                 if done:
+                    print("adding two tiles to matrix")
                     self.matrix = logic.add_two(self.matrix)
                     # record last move
+                    print("recording last move")
                     self.history_matrixs.append(self.matrix)
                     self.update_grid_cells()
                     if logic.game_state(self.matrix) == 'win':
@@ -132,8 +135,7 @@ class GameGrid(Frame):
                     if logic.game_state(self.matrix) == 'lose':
                         self.grid_cells[1][1].configure(text="You", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
                         self.grid_cells[1][2].configure(text="Lose!", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
-                    time.sleep(0.5)
-
+                return
 
     def generate_next(self):
         index = (gen(), gen())
