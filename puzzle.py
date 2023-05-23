@@ -38,7 +38,7 @@ class GameGrid(Frame):
         self.history_matrixs = []
         self.update_grid_cells()
         self.setup_buttons()
-        self.run_game()
+        self.run_button()
         self.mainloop()
 
     def init_grid(self):
@@ -129,10 +129,10 @@ class GameGrid(Frame):
                     print("recording last move")
                     self.history_matrixs.append(self.matrix)
                     self.update_grid_cells()
-                    if logic.game_state(self.matrix) == 'win':
+                    if logic.game_state(self.matrix) == 'win': 
                         self.grid_cells[1][1].configure(text="You", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
                         self.grid_cells[1][2].configure(text="Win!", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
-                    if logic.game_state(self.matrix) == 'lose':
+                    if logic.game_state(self.matrix) == 'lose': #this doesn't work
                         self.grid_cells[1][1].configure(text="You", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
                         self.grid_cells[1][2].configure(text="Lose!", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
                 return
@@ -143,8 +143,11 @@ class GameGrid(Frame):
             index = (gen(), gen())
         self.matrix[index[0]][index[1]] = 2
 
-    def run_game(self):
+    def run_button(self):
+        for key in self.buttons.keys():
+            button = self.buttons[key]
+            button.value = True
         self.check_buttons()
-        self.master.after(100, self.run_game)
+        self.master.after(100, self.run_button)
 
 game_grid = GameGrid()
