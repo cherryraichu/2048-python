@@ -3,6 +3,13 @@ import random
 import logic
 import constants as c
 
+import time
+import board
+import digitalio
+from adafruit_seesaw.seesaw import Seesaw
+from adafruit_seesaw.digitalio import DigitalIO
+from adafruit_seesaw.pwmout import PWMOut
+
 def gen():
     return random.randint(0, c.GRID_LEN - 1)
 
@@ -15,10 +22,6 @@ class GameGrid(Frame):
         self.master.bind("<Key>", self.key_down)
 
         self.commands = {
-            c.KEY_UP: logic.up,
-            c.KEY_DOWN: logic.down,
-            c.KEY_LEFT: logic.left,
-            c.KEY_RIGHT: logic.right,
             c.KEY_UP_ALT1: logic.up,
             c.KEY_DOWN_ALT1: logic.down,
             c.KEY_LEFT_ALT1: logic.left,
@@ -34,7 +37,8 @@ class GameGrid(Frame):
         self.matrix = logic.new_game(c.GRID_LEN)
         self.history_matrixs = []
         self.update_grid_cells()
-
+        self.setup_buttons()
+        self.run_button()
         self.mainloop()
 
     def init_grid(self):
@@ -68,6 +72,17 @@ class GameGrid(Frame):
                 grid_row.append(t)
             self.grid_cells.append(grid_row)
 
+    def setup_buttons(self):
+        self.i2c = board.I2C() 
+        self.arcade_qt = Seesaw(self.i2c, addr=0x3A)
+        self.button_pins = (18, 19, 20, 2)
+        self.buttons = {}
+        for button_pin in self.button_pins:
+            button = DigitalIO(self.arcade_qt, button_pin)
+            button.direction = digitalio.Direction.INPUT
+            button.pull = digitalio.Pull.UP
+            self.buttons[button_pin] = button
+
     def update_grid_cells(self):
         for i in range(c.GRID_LEN):
             for j in range(c.GRID_LEN):
@@ -90,24 +105,49 @@ class GameGrid(Frame):
             self.matrix = self.history_matrixs.pop()
             self.update_grid_cells()
             print('back on step total step:', len(self.history_matrixs))
-        elif key in self.commands:
-            self.matrix, done = self.commands[key](self.matrix)
-            if done:
-                self.matrix = logic.add_two(self.matrix)
-                # record last move
-                self.history_matrixs.append(self.matrix)
-                self.update_grid_cells()
-                if logic.game_state(self.matrix) == 'win':
-                    self.grid_cells[1][1].configure(text="You", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
-                    self.grid_cells[1][2].configure(text="Win!", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
-                if logic.game_state(self.matrix) == 'lose':
-                    self.grid_cells[1][1].configure(text="You", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
-                    self.grid_cells[1][2].configure(text="Lose!", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
+
+    def check_buttons(self):
+        for key in self.buttons.keys():
+            button = self.buttons[key]
+            if not button.value:
+                print(f'button at pin {key} was pressed') 
+                        
+                #Map the direction to the button pressed 
+                if key == 20:
+                    self.matrix, done = logic.up(self.matrix)
+                elif key == 2:
+                    self.matrix, done = logic.right(self.matrix)
+                elif key == 19:
+                    self.matrix, done = logic.left(self.matrix) 
+                elif key == 18:
+                    self.matrix, done = logic.down(self.matrix)
+                
+                if done:
+                    print("adding two tiles to matrix")
+                    self.matrix = logic.add_two(self.matrix)
+                    # record last move
+                    print("recording last move")
+                    self.history_matrixs.append(self.matrix)
+                    self.update_grid_cells()
+                    if logic.game_state(self.matrix) == 'win': 
+                        self.grid_cells[1][1].configure(text="You", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
+                        self.grid_cells[1][2].configure(text="Win!", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
+                    if logic.game_state(self.matrix) == 'lose': #this doesn't work
+                        self.grid_cells[1][1].configure(text="You", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
+                        self.grid_cells[1][2].configure(text="Lose!", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
+                return
 
     def generate_next(self):
         index = (gen(), gen())
         while self.matrix[index[0]][index[1]] != 0:
             index = (gen(), gen())
         self.matrix[index[0]][index[1]] = 2
+
+    def run_button(self):
+        for key in self.buttons.keys():
+            button = self.buttons[key]
+            button.value = True
+        self.check_buttons()
+        self.master.after(100, self.run_button)
 
 game_grid = GameGrid()
